@@ -561,18 +561,8 @@ def boundary.face.hom : Δ[n] ⟶ ∂Δ[n + 1] := (yonedaEquiv _ _).symm (bounda
 lemma boundary.face.hom_comp_boundaryInclusion :
     face.hom i ≫ boundaryInclusion (n + 1) = standardSimplex.map (δ i) := rfl
 
-def horn.face' (j: Fin (n + 2)) (h : j ≠ i):
-    Λ[n + 1, i] _[n] :=
-  ⟨standardSimplex.face j, by
-    -- make it a simp lemma
-    have : asOrderHom (objMk j.succAboveOrderEmb.toOrderHom)
-      = j.succAboveOrderEmb.toOrderHom := rfl
-    erw [this]
-    simp [insert_eq_of_mem, ne_univ_iff_exists_not_mem, Surjective]
-    exact h⟩
-
 def horn.face.hom (j : Fin (n + 2)) (h : j ≠ i) :
-    Δ[n] ⟶ Λ[n + 1, i] := (yonedaEquiv _ _).symm (horn.face' i j h)
+    Δ[n] ⟶ Λ[n + 1, i] := (yonedaEquiv _ _).symm (horn.face i j h)
 
 lemma horn.face.hom_comp_boundaryInclusion {j : Fin (n + 2)} {h : j ≠ i} :
     face.hom i j h ≫ hornInclusion (n + 1) i = standardSimplex.map (δ j) := rfl
@@ -624,7 +614,7 @@ def boundaryGenerator (n : ℕ) : Generator ∂Δ[n + 1] where
     convert (factor_δ_spec (objEquiv _ _ y) i hi).symm
 
 def hornGenerator (n : ℕ) (j) : Generator Λ[n + 1, j] where
-  carrier := {⟨n, horn.face' j i.val i.property⟩| i : { i : Fin (n + 2) // i ≠ j}}
+  carrier := {⟨n, horn.face j i.val i.property⟩| i : { i : Fin (n + 2) // i ≠ j}}
   connect := by
     intro ⟨k, ⟨y, hy⟩⟩
     rw [ne_univ_iff_exists_not_mem] at hy
@@ -638,7 +628,6 @@ def hornGenerator (n : ℕ) (j) : Generator Λ[n + 1, j] where
     convert (factor_δ_spec (objEquiv _ _ y) i hi₂).symm
 
 end Generator
-
 #exit
 section HomMk
 
@@ -986,13 +975,13 @@ lemma test2_aux1 (f : {k : ℕ} → (hornGenerator (n + 1) l).carrier.level k �
         rw [hψ₂.1, hψ₂.2]
         simp only [FunctorToTypes.map_comp_apply]
         congr! 1
-        exact h ⟨⟨_, horn.face' l i hi₀⟩, ⟨⟨i, hi₀⟩, rfl⟩⟩
-          ⟨⟨_, horn.face' l j hj₀⟩, ⟨⟨j, hj₀⟩, rfl⟩⟩
+        exact h ⟨⟨_, horn.face l i hi₀⟩, ⟨⟨i, hi₀⟩, rfl⟩⟩
+          ⟨⟨_, horn.face l j hj₀⟩, ⟨⟨j, hj₀⟩, rfl⟩⟩
           ⟨_, horn.nface (i.castPred (ne_last_of_lt hij)) j⟩
           ⟨_, _, rfl⟩
           (δ (j.pred (ne_zero_of_lt hij))).op
           (δ (i.castPred (ne_last_of_lt hij))).op
-          (by simp [horn.nface, horn.face', horn]; apply test_aux2 _ _ hij)
+          (by simp [horn.nface, horn.face, horn]; apply test_aux2 _ _ hij)
           rfl
       . --- how to simplify this kind of symmetric proof??
         obtain ⟨ψ, ⟨_, hψ₂⟩⟩ := test_aux3 _ _ hij _ _ _
@@ -1001,26 +990,26 @@ lemma test2_aux1 (f : {k : ℕ} → (hornGenerator (n + 1) l).carrier.level k �
         simp only [FunctorToTypes.map_comp_apply]
         congr! 1
         symm
-        exact h ⟨⟨_, horn.face' l j hj₀⟩, ⟨⟨j, hj₀⟩, rfl⟩⟩
-          ⟨⟨_, horn.face' l i hi₀⟩, ⟨⟨i, hi₀⟩, rfl⟩⟩
+        exact h ⟨⟨_, horn.face l j hj₀⟩, ⟨⟨j, hj₀⟩, rfl⟩⟩
+          ⟨⟨_, horn.face l i hi₀⟩, ⟨⟨i, hi₀⟩, rfl⟩⟩
           ⟨_, horn.nface (j.castPred (ne_last_of_lt hij)) i⟩
           ⟨_, _, rfl⟩
           (δ (i.pred (ne_zero_of_lt hij))).op
           (δ (j.castPred (ne_last_of_lt hij))).op
-          (by simp [horn.nface, horn.face', horn]; apply test_aux2 _ _ hij)
+          (by simp [horn.nface, horn.face, horn]; apply test_aux2 _ _ hij)
           rfl
 
-lemma horn.face'.injective :
-    ∀ j i i' : Fin (n + 2), ∀ h h', horn.face' j i h =  horn.face' j i' h' → i = i' := by
+lemma horn.face.injective :
+    ∀ j i i' : Fin (n + 2), ∀ h h', horn.face j i h =  horn.face j i' h' → i = i' := by
   intro _ _ _ _ _ hij
   apply_fun fun x ↦ ⇑(asOrderHom (Subtype.val x)) at hij
   simp only [face, face, asOrderHom_objMk] at hij
   apply succAbove_left_injective hij
 
 noncomputable def equiv_test2 : Fin (n + 1) ≃ (hornGenerator n j).carrier.level n where
-  toFun i := ⟨horn.face' j _ (succAbove_ne j i), ⟨⟨_, succAbove_ne j i⟩, rfl⟩⟩
+  toFun i := ⟨horn.face j _ (succAbove_ne j i), ⟨⟨_, succAbove_ne j i⟩, rfl⟩⟩
   invFun x := by
-    have : ∃ i, horn.face' j _ (succAbove_ne j i) = x.1 := by
+    have : ∃ i, horn.face j _ (succAbove_ne j i) = x.1 := by
       obtain ⟨⟨i', hi'₀⟩, hi'⟩ := x.2
       obtain ⟨i, hi⟩ := exists_succAbove_eq_iff.mpr hi'₀
       use i
@@ -1030,13 +1019,13 @@ noncomputable def equiv_test2 : Fin (n + 1) ≃ (hornGenerator n j).carrier.leve
     simp only [LeftInverse]
     intro i
     apply succAbove_right_injective (p := j)
-    apply horn.face'.injective (j := j) _ _ (succAbove_ne j _) (succAbove_ne j _)
+    apply horn.face.injective (j := j) _ _ (succAbove_ne j _) (succAbove_ne j _)
     exact choose_spec
-      (⟨i, rfl⟩ : ∃ i', horn.face' j _ (succAbove_ne j i') = horn.face' j _ (succAbove_ne j i) )
+      (⟨i, rfl⟩ : ∃ i', horn.face j _ (succAbove_ne j i') = horn.face j _ (succAbove_ne j i) )
   right_inv := by
     simp [Function.RightInverse, LeftInverse]
     intro x hx
-    have : ∃ i, horn.face' j _ (succAbove_ne j i) = x := by
+    have : ∃ i, horn.face j _ (succAbove_ne j i) = x := by
       obtain ⟨⟨i', hi'₀⟩, hi'⟩ := hx
       obtain ⟨i, hi⟩ := exists_succAbove_eq_iff.mpr hi'₀
       use i
@@ -1054,8 +1043,8 @@ noncomputable def CompatibleFun.hornMkFun {n : ℕ} (f : Fin (n + 1) → Y _[n])
 
 lemma CompatibleFun.hornMkFun_eq (f : Fin (n + 1) → Y _[n])
     (j : Fin (n + 2)) (i : Fin (n + 1)) {h} :
-  (CompatibleFun.hornMkFun f j) ⟨horn.face' j _ (succAbove_ne j i), h⟩ = f i := by
-  dsimp [horn.face', hornMkFun]
+  (CompatibleFun.hornMkFun f j) ⟨horn.face j _ (succAbove_ne j i), h⟩ = f i := by
+  dsimp [horn.face, hornMkFun]
   congr
   exact equiv_test2.left_inv i
 
@@ -1073,7 +1062,7 @@ noncomputable def CompatibleFun.hornMk {n : ℕ} (f : Fin (n + 2) → Y _[n + 1]
         obtain ⟨xk, hxk₀⟩ := exists_succAbove_eq_iff.mpr hxk₀
         obtain ⟨yk, hyk₀⟩ := exists_succAbove_eq_iff.mpr hyk₀
         cases hxk₀; cases hyk₀; cases hxk; cases hyk; cases hij
-        simp [horn.face', horn, ← Subtype.val_inj] at h₁ h₂
+        simp [horn.face, horn, ← Subtype.val_inj] at h₁ h₂
         simp at φ₁ φ₂
         simp [CompatibleFun.hornMkFun_eq]
         by_cases hxy : xk = yk
@@ -1111,14 +1100,14 @@ noncomputable def horn.HomMk {n : ℕ} (f : Fin (n + 2) → Y _[n + 1]) (k : Fin
     Λ[n + 2, k] ⟶ Y := Extend (hornGenerator (n + 1) k) (CompatibleFun.hornMk f k h)
 
 lemma horn.HomMk_spec {n : ℕ} (f : Fin (n + 2) → Y _[n + 1]) (k : Fin (n + 3)) {l} {h} :
-    (HomMk f k h).app _ (horn.face' k _ (succAbove_ne k l)) = f l := by
+    (HomMk f k h).app _ (horn.face k _ (succAbove_ne k l)) = f l := by
   dsimp [HomMk]
   convert Extend.spec (hornGenerator (n + 1) k) (CompatibleFun.hornMk f k h)
-    (horn.face' k _ (succAbove_ne k l)) ⟨⟨_, succAbove_ne k l⟩, rfl⟩
+    (horn.face k _ (succAbove_ne k l)) ⟨⟨_, succAbove_ne k l⟩, rfl⟩
   exact (CompatibleFun.hornMkFun_eq _ _ _).symm
 
 lemma horn.face_comp_HomMk {n : ℕ} (f : Fin (n + 2) → Y _[n + 1]) (k : Fin (n + 3)) {l} {h} :
-    (yonedaEquiv _ _).symm (horn.face' k _ (succAbove_ne k l)) ≫ horn.HomMk f k h
+    (yonedaEquiv _ _).symm (horn.face k _ (succAbove_ne k l)) ≫ horn.HomMk f k h
       = (yonedaEquiv _ _).symm (f l) := by
   apply_fun Y.yonedaEquiv _
   convert HomMk_spec f k -- lhs is solved by rfl as they're definitionally equal
@@ -1137,7 +1126,7 @@ noncomputable def horn.HomMk' {n : ℕ} (f : Fin (n + 2) → (Δ[n + 1] ⟶ Y)) 
         EmbeddingLike.apply_eq_iff_eq]))
 
 lemma horn.HomMk_spec' {n : ℕ} (f : Fin (n + 2) → (Δ[n + 1] ⟶ Y)) (k : Fin (n + 3)) {l} {h} :
-    (yonedaEquiv _ _).symm (horn.face' k _ (succAbove_ne k l)) ≫ HomMk' f k h = f l := by
+    (yonedaEquiv _ _).symm (horn.face k _ (succAbove_ne k l)) ≫ HomMk' f k h = f l := by
   apply_fun yonedaEquiv _ _
   convert horn.HomMk_spec _ _
 
@@ -1154,7 +1143,7 @@ noncomputable def CompatibleFun.hornMkZero (a : Y _[0]) (k : Fin 2) :
               Finset.card_insert_of_not_mem (by simp only [Finset.mem_singleton]; exact h),
               Finset.card_singleton]
         simp at this
-        simp [horn.face', horn, ← Subtype.val_inj] at h₁ h₂
+        simp [horn.face, horn, ← Subtype.val_inj] at h₁ h₂
         cases hxk; cases hyk; cases this
         congr!
         apply test_aux1 _ _ _ _ _ (h₁.symm.trans h₂)
